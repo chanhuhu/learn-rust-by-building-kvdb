@@ -6,9 +6,7 @@ fn main() {
     let value = arguments.next().unwrap();
     println!("The key is {} and the value is {}", &key, &value);
     let mut database = Database::new().expect("Failed to init Database");
-    database.insert(key.clone(), value.clone());
-    database.insert(key.to_uppercase(), value.clone());
-    database.insert(key.to_uppercase(), value);
+    database.insert(key, value);
 }
 
 #[derive(Debug)]
@@ -56,7 +54,10 @@ fn do_flush(database: &Database) -> Result<String, std::io::Error> {
 
 impl Drop for Database {
     fn drop(&mut self) {
-        let contents = self.flush().expect("Failed to flush database");
-        std::fs::write("kv.db", contents).unwrap();
+        // if not flushed database then do flush
+        if !self.is_flushed {
+            let contents = self.flush().expect("Failed to flush database");
+            std::fs::write("kv.db", contents).unwrap();
+        }
     }
 }
